@@ -1,5 +1,7 @@
 from typing import Any, List
 
+from docx.text.paragraph import Paragraph as DocxParagraph
+
 from python_docx_replace.block_handler import BlockHandler
 from python_docx_replace.key_changer import KeyChanger
 
@@ -11,21 +13,15 @@ class Paragraph:
         paragraphs.extend(Paragraph._get_paragraphs(doc))
 
         for section in doc.sections:
-            paragraphs.extend(Paragraph._get_paragraphs(section.header))
-            paragraphs.extend(Paragraph._get_paragraphs(section.footer))
+            paragraphs.extend(Paragraph._get_paragraphs(section.header.part))
+            paragraphs.extend(Paragraph._get_paragraphs(section.footer.part))
 
         return paragraphs
 
     @staticmethod
     def _get_paragraphs(item: Any) -> Any:
-        yield from item.paragraphs
-
-        # get paragraphs from tables
-        for table in item.tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    for paragraph in cell.paragraphs:
-                        yield paragraph
+        elements = item.element.xpath("//w:p")
+        return list(map(lambda element: DocxParagraph(element, item), elements))
 
     def __init__(self, p) -> None:
         self.p = p
